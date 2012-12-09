@@ -63,8 +63,14 @@ class ProxyReferenceRepository extends ReferenceRepository
 
         foreach ($this->getReferences() as $name => $reference) {
             $className = $this->getRealClass(get_class($reference));
+            $meta      = $this->getManager()->getClassMetadata($className);
+            $idFields  = $meta->getIdentifier();
+            if (count($idFields) > 1) {
+                throw new \RuntimeException('Multi-column primary keys are not supported.');
+            }
+            $getterName = 'get' . ucfirst($idFields[0]);
 
-            $simpleReferences[$name] = array($className, $reference->getId());
+            $simpleReferences[$name] = array($className, $reference->$getterName());
         }
 
         $serializedData = json_encode(array(
