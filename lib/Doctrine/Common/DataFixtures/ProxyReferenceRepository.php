@@ -68,7 +68,17 @@ class ProxyReferenceRepository extends ReferenceRepository
             if (count($idFields) > 1) {
                 throw new \RuntimeException('Multi-column primary keys are not supported.');
             }
-            $getterName = 'get' . ucfirst($idFields[0]);
+            $getterName = 'get' . \Doctrine\Common\Util\Inflector::classify($idFields[0]);
+            if (!method_exists($reference, $getterName)) {
+                $msg = sprintf(
+                    'The getter for primary key field "%s" (%s::%s()) doesn\'t exist.',
+                    $idFields[0],
+                    $className,
+                    $getterName
+                );
+
+                throw new \RuntimeException($msg);
+            }
 
             $simpleReferences[$name] = array($className, $reference->$getterName());
         }
